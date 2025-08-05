@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f9ff;
+  --foreground: #1a237e;
 }
 
 @theme inline {
@@ -20,7 +20,17 @@
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(135deg, #f5f9ff 0%, #e3f2fd 50%, #bbdefb 100%);
   color: var(--foreground);
   font-family: var(--font-noto-sans-jp), var(--font-geist-sans), "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+  min-height: 100vh;
+}
+
+/* 青系のカスタムスタイル */
+.blue-gradient {
+  background: linear-gradient(135deg, #2196f3 0%, #21cbf3 100%);
+}
+
+.blue-shadow {
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
 }
