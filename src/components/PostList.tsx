@@ -31,7 +31,7 @@ const PostList: React.FC<PostListProps> = ({ onEdit, onDelete, refreshTrigger })
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch('/api/posts');
+      const response = await fetch('https://your-vercel-app.vercel.app/api/posts');
       if (response.ok) {
         const data = await response.json();
         setPosts(data);

@@ -5,19 +5,20 @@ import mongoose from 'mongoose';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: '無効なIDです' },
         { status: 400 }
       );
     }
 
-    const post = await Post.findById(params.id);
+    const post = await Post.findById(id);
     
     if (!post) {
       return NextResponse.json(
@@ -38,12 +39,13 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: '無効なIDです' },
         { status: 400 }
@@ -67,7 +69,7 @@ export async function PUT(
     }
 
     const post = await Post.findByIdAndUpdate(
-      params.id,
+      id,
       { content: content.trim() },
       { new: true, runValidators: true }
     );
@@ -91,19 +93,20 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: '無効なIDです' },
         { status: 400 }
       );
     }
 
-    const post = await Post.findByIdAndDelete(params.id);
+    const post = await Post.findByIdAndDelete(id);
 
     if (!post) {
       return NextResponse.json(
