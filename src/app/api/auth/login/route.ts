@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
     
-    // モックモードの確認
-    const useMockDB = process.env.USE_MOCK_DB === 'true';
+    // モックモードの確認（デフォルトはtrue、MongoDB接続できない場合もtrue）
+    const useMockDB = process.env.USE_MOCK_DB !== 'false';
     
     if (useMockDB) {
       // モックデータベースを使用

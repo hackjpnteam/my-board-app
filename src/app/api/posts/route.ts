@@ -23,8 +23,8 @@ export const GET = requireAuth(async () => {
   try {
     console.log('GET /api/posts - Starting request');
     
-    // モックモードの確認
-    const useMockDB = process.env.USE_MOCK_DB === 'true';
+    // モックモードの確認（デフォルトはtrue）
+    const useMockDB = process.env.USE_MOCK_DB !== 'false';
     
     if (useMockDB) {
       // モックデータベースを使用
@@ -63,8 +63,8 @@ export const POST = requireAuth(async (request: AuthenticatedRequest) => {
   try {
     console.log('POST /api/posts - Starting request');
     
-    // モックモードの確認
-    const useMockDB = process.env.USE_MOCK_DB === 'true';
+    // モックモードの確認（デフォルトはtrue）
+    const useMockDB = process.env.USE_MOCK_DB !== 'false';
     
     if (useMockDB) {
       // モックデータベースを使用

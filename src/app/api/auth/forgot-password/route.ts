@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json();
     
-    // モックモードの確認
-    const useMockDB = process.env.USE_MOCK_DB === 'true';
+    // モックモードの確認（デフォルトはtrue）
+    const useMockDB = process.env.USE_MOCK_DB !== 'false';
     
     if (useMockDB) {
       // モックデータベースを使用
