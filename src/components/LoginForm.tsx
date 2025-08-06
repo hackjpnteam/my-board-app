@@ -8,7 +8,6 @@ import {
   Button,
   Typography,
   Box,
-  Alert,
   Link,
   Divider,
 } from '@mui/material';
@@ -22,7 +21,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, error } = useAuth();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +29,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
 
     try {
       await login(email, password);
-    } catch (error) {
+    } catch {
       // エラーはAuthContextで処理される
     } finally {
       setIsSubmitting(false);
@@ -44,11 +43,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
           ログイン
         </Typography>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+
 
         <form onSubmit={handleSubmit}>
           <TextField

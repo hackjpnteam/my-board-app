@@ -13,13 +13,13 @@ export interface JWTPayload {
 export const generateToken = (payload: JWTPayload): string => {
   return jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN
-  });
+  } as jwt.SignOptions);
 };
 
 export const verifyToken = (token: string): JWTPayload => {
   try {
     return jwt.verify(token, JWT_SECRET) as JWTPayload;
-  } catch (error) {
+  } catch {
     throw new Error('Invalid token');
   }
 };
@@ -27,7 +27,7 @@ export const verifyToken = (token: string): JWTPayload => {
 export const decodeToken = (token: string): JWTPayload | null => {
   try {
     return jwt.decode(token) as JWTPayload;
-  } catch (error) {
+  } catch {
     return null;
   }
 }; 

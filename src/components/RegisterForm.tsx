@@ -8,7 +8,6 @@ import {
   Button,
   Typography,
   Box,
-  Alert,
   Link,
   Divider,
 } from '@mui/material';
@@ -24,7 +23,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register, error } = useAuth();
+  const { register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +38,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
 
     try {
       await register(username, email, password);
-    } catch (error) {
+    } catch {
       // エラーはAuthContextで処理される
     } finally {
       setIsSubmitting(false);
@@ -53,11 +52,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
           新規登録
         </Typography>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+
 
         <form onSubmit={handleSubmit}>
           <TextField

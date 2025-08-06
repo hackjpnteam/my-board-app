@@ -2,18 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Post from '@/models/Post';
 import mongoose from 'mongoose';
-import { requireAuth, requireAdmin, AuthenticatedRequest } from '@/lib/auth';
+import { requireAuth, AuthenticatedRequest } from '@/lib/auth';
 
-// CORS headers function with specific origins
+// CORS headers function
 function addCorsHeaders(response: NextResponse) {
-  // Allow specific origins - add your Amplify domain here
-  const allowedOrigins = [
-    'https://main.d35dfe9fel2z6w.amplifyapp.com',
-    'http://localhost:3000', // For local development
-    'https://your-vercel-app.vercel.app' // Your Vercel domain if needed
-  ];
-  
-  // For now, we'll use * to fix the immediate issue, but you can replace with specific origins
   response.headers.set('Access-Control-Allow-Origin', '*');
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -28,10 +20,10 @@ export async function OPTIONS() {
 
 export const GET = requireAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) => {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     console.log(`GET /api/posts/${id} - Starting request`);
     
     // Add timeout to database connection
@@ -76,10 +68,10 @@ export const GET = requireAuth(async (
 
 export const PUT = requireAuth(async (
   request: AuthenticatedRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) => {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     console.log(`PUT /api/posts/${id} - Starting request`);
     
     // Add timeout to database connection
@@ -128,6 +120,13 @@ export const PUT = requireAuth(async (
     }
 
     const user = request.user;
+    if (!user) {
+      const response = NextResponse.json(
+        { error: '認証が必要です' },
+        { status: 401 }
+      );
+      return addCorsHeaders(response);
+    }
     // 管理者または投稿者本人のみ編集可能
     if (user.role !== 'admin' && post.author.userId.toString() !== user.userId) {
       const response = NextResponse.json(
@@ -158,10 +157,10 @@ export const PUT = requireAuth(async (
 
 export const DELETE = requireAuth(async (
   request: AuthenticatedRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) => {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     console.log(`DELETE /api/posts/${id} - Starting request`);
     
     // Add timeout to database connection
@@ -192,6 +191,13 @@ export const DELETE = requireAuth(async (
     }
 
     const user = request.user;
+    if (!user) {
+      const response = NextResponse.json(
+        { error: '認証が必要です' },
+        { status: 401 }
+      );
+      return addCorsHeaders(response);
+    }
     // 管理者または投稿者本人のみ削除可能
     if (user.role !== 'admin' && post.author.userId.toString() !== user.userId) {
       const response = NextResponse.json(

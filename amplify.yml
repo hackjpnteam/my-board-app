@@ -4,7 +4,7 @@ frontend:
     preBuild:
       commands:
         - nvm use 18
-        - npm ci --legacy-peer-deps
+        - npm ci --legacy-peer-deps --prefer-offline
     build:
       commands:
         - npm run build
@@ -15,4 +15,5 @@ frontend:
   cache:
     paths:
       - node_modules/**/*
-      - .next/cache/**/* 
+      - .next/cache/**/*
+      - .npm-cache/**/* 

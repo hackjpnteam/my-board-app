@@ -1,20 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Post from '@/models/Post';
 import { requireAuth, AuthenticatedRequest } from '@/lib/auth';
 import { sendAdminNotification } from '@/lib/email';
 import { mockDB } from '@/lib/mock-db';
 
-// CORS headers function with specific origins
+// CORS headers function
 function addCorsHeaders(response: NextResponse) {
-  // Allow specific origins - add your Amplify domain here
-  const allowedOrigins = [
-    'https://main.d35dfe9fel2z6w.amplifyapp.com',
-    'http://localhost:3000', // For local development
-    'https://your-vercel-app.vercel.app' // Your Vercel domain if needed
-  ];
-  
-  // For now, we'll use * to fix the immediate issue, but you can replace with specific origins
   response.headers.set('Access-Control-Allow-Origin', '*');
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -27,7 +19,7 @@ export async function OPTIONS() {
   return addCorsHeaders(response);
 }
 
-export const GET = requireAuth(async (request: NextRequest) => {
+export const GET = requireAuth(async () => {
   try {
     console.log('GET /api/posts - Starting request');
     
@@ -126,7 +118,7 @@ export const POST = requireAuth(async (request: AuthenticatedRequest) => {
       await Promise.race([connectionPromise, timeoutPromise]);
       console.log('POST /api/posts - Database connected');
       
-            const { content } = await request.json();
+      const { content } = await request.json();
 
       if (!content || content.trim().length === 0) {
         const response = NextResponse.json(

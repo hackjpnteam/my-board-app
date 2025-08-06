@@ -21,7 +21,7 @@ export const authenticateToken = async (request: NextRequest): Promise<NextRespo
     (request as AuthenticatedRequest).user = user;
     
     return null; // 認証成功
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: '無効なトークンです' },
       { status: 401 }
@@ -29,17 +29,19 @@ export const authenticateToken = async (request: NextRequest): Promise<NextRespo
   }
 };
 
-export const requireAuth = (handler: Function) => {
-  return async (request: NextRequest) => {
+type RequestHandler<T = Record<string, string>> = (request: NextRequest, context: { params: Promise<T> }) => Promise<NextResponse>;
+
+export const requireAuth = <T = Record<string, string>>(handler: RequestHandler<T>): RequestHandler<T> => {
+  return async (request: NextRequest, context: { params: Promise<T> }) => {
     const authResult = await authenticateToken(request);
     if (authResult) return authResult;
     
-    return handler(request);
+    return handler(request, context);
   };
 };
 
-export const requireAdmin = (handler: Function) => {
-  return async (request: NextRequest) => {
+export const requireAdmin = <T = Record<string, string>>(handler: RequestHandler<T>): RequestHandler<T> => {
+  return async (request: NextRequest, context: { params: Promise<T> }) => {
     const authResult = await authenticateToken(request);
     if (authResult) return authResult;
     
@@ -51,6 +53,6 @@ export const requireAdmin = (handler: Function) => {
       );
     }
     
-    return handler(request);
+    return handler(request, context);
   };
 }; 

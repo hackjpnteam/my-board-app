@@ -75,10 +75,10 @@ export const userDB = {
   },
 
   // ユーザーを更新
-  async updateUser(id: string, updates: any) {
-    const updateExpression = [];
-    const expressionAttributeNames: any = {};
-    const expressionAttributeValues: any = {};
+  async updateUser(id: string, updates: Record<string, unknown>) {
+    const updateExpression: string[] = [];
+    const expressionAttributeNames: Record<string, string> = {};
+    const expressionAttributeValues: Record<string, unknown> = {};
 
     Object.keys(updates).forEach((key, index) => {
       const attributeName = `#attr${index}`;
@@ -143,10 +143,10 @@ export const postDB = {
   },
 
   // 投稿を更新
-  async updatePost(id: string, updates: any) {
-    const updateExpression = [];
-    const expressionAttributeNames: any = {};
-    const expressionAttributeValues: any = {};
+  async updatePost(id: string, updates: Record<string, unknown>) {
+    const updateExpression: string[] = [];
+    const expressionAttributeNames: Record<string, string> = {};
+    const expressionAttributeValues: Record<string, unknown> = {};
 
     Object.keys(updates).forEach((key, index) => {
       const attributeName = `#attr${index}`;

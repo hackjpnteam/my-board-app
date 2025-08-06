@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import { generateToken } from '@/lib/jwt';
 import { sendVerificationEmail } from '@/lib/email';
 import crypto from 'crypto';
 import { mockDB, hashPassword } from '@/lib/mock-db';
