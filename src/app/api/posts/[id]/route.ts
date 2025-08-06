@@ -30,8 +30,17 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
     const { id } = await params;
+    console.log(`GET /api/posts/${id} - Starting request`);
+    
+    // Add timeout to database connection
+    const connectionPromise = connectDB();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+    );
+    
+    await Promise.race([connectionPromise, timeoutPromise]);
+    console.log(`GET /api/posts/${id} - Database connected`);
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
       const response = NextResponse.json(
@@ -41,7 +50,7 @@ export async function GET(
       return addCorsHeaders(response);
     }
 
-    const post = await Post.findById(id);
+    const post = await Post.findById(id).maxTimeMS(5000);
     
     if (!post) {
       const response = NextResponse.json(
@@ -51,12 +60,13 @@ export async function GET(
       return addCorsHeaders(response);
     }
 
+    console.log(`GET /api/posts/${id} - Post found`);
     const response = NextResponse.json(post);
     return addCorsHeaders(response);
   } catch (error) {
     console.error('Error fetching post:', error);
     const response = NextResponse.json(
-      { error: '投稿の取得に失敗しました' },
+      { error: '投稿の取得に失敗しました', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
     return addCorsHeaders(response);
@@ -68,8 +78,17 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
     const { id } = await params;
+    console.log(`PUT /api/posts/${id} - Starting request`);
+    
+    // Add timeout to database connection
+    const connectionPromise = connectDB();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+    );
+    
+    await Promise.race([connectionPromise, timeoutPromise]);
+    console.log(`PUT /api/posts/${id} - Database connected`);
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
       const response = NextResponse.json(
@@ -101,7 +120,7 @@ export async function PUT(
       id,
       { content: content.trim() },
       { new: true, runValidators: true }
-    );
+    ).maxTimeMS(5000);
 
     if (!post) {
       const response = NextResponse.json(
@@ -111,12 +130,13 @@ export async function PUT(
       return addCorsHeaders(response);
     }
 
+    console.log(`PUT /api/posts/${id} - Post updated successfully`);
     const response = NextResponse.json(post);
     return addCorsHeaders(response);
   } catch (error) {
     console.error('Error updating post:', error);
     const response = NextResponse.json(
-      { error: '投稿の更新に失敗しました' },
+      { error: '投稿の更新に失敗しました', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
     return addCorsHeaders(response);
@@ -128,8 +148,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
     const { id } = await params;
+    console.log(`DELETE /api/posts/${id} - Starting request`);
+    
+    // Add timeout to database connection
+    const connectionPromise = connectDB();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+    );
+    
+    await Promise.race([connectionPromise, timeoutPromise]);
+    console.log(`DELETE /api/posts/${id} - Database connected`);
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
       const response = NextResponse.json(
@@ -139,7 +168,7 @@ export async function DELETE(
       return addCorsHeaders(response);
     }
 
-    const post = await Post.findByIdAndDelete(id);
+    const post = await Post.findByIdAndDelete(id).maxTimeMS(5000);
 
     if (!post) {
       const response = NextResponse.json(
@@ -149,12 +178,13 @@ export async function DELETE(
       return addCorsHeaders(response);
     }
 
+    console.log(`DELETE /api/posts/${id} - Post deleted successfully`);
     const response = NextResponse.json({ message: '投稿を削除しました' });
     return addCorsHeaders(response);
   } catch (error) {
     console.error('Error deleting post:', error);
     const response = NextResponse.json(
-      { error: '投稿の削除に失敗しました' },
+      { error: '投稿の削除に失敗しました', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
     return addCorsHeaders(response);

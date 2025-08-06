@@ -26,14 +26,26 @@ export async function OPTIONS() {
 
 export async function GET() {
   try {
-    await connectDB();
-    const posts = await Post.find({}).sort({ createdAt: -1 });
+    console.log('GET /api/posts - Starting request');
+    
+    // Add timeout to database connection
+    const connectionPromise = connectDB();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+    );
+    
+    await Promise.race([connectionPromise, timeoutPromise]);
+    console.log('GET /api/posts - Database connected');
+    
+    const posts = await Post.find({}).sort({ createdAt: -1 }).maxTimeMS(5000);
+    console.log(`GET /api/posts - Found ${posts.length} posts`);
+    
     const response = NextResponse.json(posts);
     return addCorsHeaders(response);
   } catch (error) {
     console.error('Error fetching posts:', error);
     const response = NextResponse.json(
-      { error: '投稿の取得に失敗しました' },
+      { error: '投稿の取得に失敗しました', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
     return addCorsHeaders(response);
@@ -42,7 +54,17 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await connectDB();
+    console.log('POST /api/posts - Starting request');
+    
+    // Add timeout to database connection
+    const connectionPromise = connectDB();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+    );
+    
+    await Promise.race([connectionPromise, timeoutPromise]);
+    console.log('POST /api/posts - Database connected');
+    
     const { content } = await request.json();
 
     if (!content || content.trim().length === 0) {
@@ -63,13 +85,14 @@ export async function POST(request: NextRequest) {
 
     const post = new Post({ content: content.trim() });
     await post.save();
+    console.log('POST /api/posts - Post saved successfully');
 
     const response = NextResponse.json(post, { status: 201 });
     return addCorsHeaders(response);
   } catch (error) {
     console.error('Error creating post:', error);
     const response = NextResponse.json(
-      { error: '投稿の作成に失敗しました' },
+      { error: '投稿の作成に失敗しました', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
     return addCorsHeaders(response);
