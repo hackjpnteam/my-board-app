@@ -33,11 +33,11 @@ class MockDatabase {
   }
 
   private async initializeMockUsers() {
-    // テスト用の初期ユーザーを追加
+    // テスト用の初期ユーザーを追加（パスワードをハッシュ化）
     await this.createUser({
       username: 'testuser',
       email: 'test@example.com',
-      password: 'password123',
+      password: await hashPassword('password123'),
       role: 'user',
       isEmailVerified: true
     });
@@ -45,7 +45,7 @@ class MockDatabase {
     await this.createUser({
       username: 'admin',
       email: 'admin@example.com',
-      password: 'admin123',
+      password: await hashPassword('admin123'),
       role: 'admin',
       isEmailVerified: true
     });
@@ -120,16 +120,29 @@ class MockDatabase {
   }
 }
 
+// パスワードハッシュ化のモック
+export const hashPassword = async (password: string): Promise<string> => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const bcrypt = require('bcryptjs');
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(password, salt);
+  } catch {
+    console.log('Bcrypt not available, using plain text');
+    return password;
+  }
+};
+
 export const mockDB = new MockDatabase();
 
 // パスワード比較のモック
 export const comparePassword = async (hashedPassword: string, plainPassword: string): Promise<boolean> => {
-  // 簡易的な比較（実際のプロダクションではbcryptを使用）
-  return hashedPassword === plainPassword;
-};
-
-// パスワードハッシュ化のモック
-export const hashPassword = async (password: string): Promise<string> => {
-  // 簡易的なハッシュ化（実際のプロダクションではbcryptを使用）
-  return password;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const bcrypt = require('bcryptjs');
+    return await bcrypt.compare(plainPassword, hashedPassword);
+  } catch {
+    console.log('Bcrypt not available, using simple comparison');
+    return hashedPassword === plainPassword;
+  }
 }; 

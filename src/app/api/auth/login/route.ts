@@ -140,8 +140,19 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error logging in:', error);
+    console.error('Login error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      useMockDB: process.env.USE_MOCK_DB
+    });
+    
+    let errorMessage = 'ログインに失敗しました';
+    if (error instanceof Error) {
+      errorMessage = `ログインに失敗しました: ${error.message}`;
+    }
+    
     const response = NextResponse.json(
-      { error: 'ログインに失敗しました' },
+      { error: errorMessage },
       { status: 500 }
     );
     return addCorsHeaders(response);
