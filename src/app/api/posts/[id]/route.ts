@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Post from '@/models/Post';
 import mongoose from 'mongoose';
+import { requireAuth, requireAdmin, AuthenticatedRequest } from '@/lib/auth';
 
 // CORS headers function with specific origins
 function addCorsHeaders(response: NextResponse) {
@@ -25,10 +26,10 @@ export async function OPTIONS() {
   return addCorsHeaders(response);
 }
 
-export async function GET(
+export const GET = requireAuth(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   try {
     const { id } = await params;
     console.log(`GET /api/posts/${id} - Starting request`);
@@ -71,12 +72,12 @@ export async function GET(
     );
     return addCorsHeaders(response);
   }
-}
+});
 
-export async function PUT(
-  request: NextRequest,
+export const PUT = requireAuth(async (
+  request: AuthenticatedRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   try {
     const { id } = await params;
     console.log(`PUT /api/posts/${id} - Starting request`);
@@ -116,12 +117,8 @@ export async function PUT(
       return addCorsHeaders(response);
     }
 
-    const post = await Post.findByIdAndUpdate(
-      id,
-      { content: content.trim() },
-      { new: true, runValidators: true }
-    ).maxTimeMS(5000);
-
+    // 投稿を取得して権限をチェック
+    const post = await Post.findById(id).maxTimeMS(5000);
     if (!post) {
       const response = NextResponse.json(
         { error: '投稿が見つかりません' },
@@ -130,8 +127,24 @@ export async function PUT(
       return addCorsHeaders(response);
     }
 
+    const user = request.user;
+    // 管理者または投稿者本人のみ編集可能
+    if (user.role !== 'admin' && post.author.userId.toString() !== user.userId) {
+      const response = NextResponse.json(
+        { error: 'この投稿を編集する権限がありません' },
+        { status: 403 }
+      );
+      return addCorsHeaders(response);
+    }
+
+    const updatedPost = await Post.findByIdAndUpdate(
+      id,
+      { content: content.trim() },
+      { new: true, runValidators: true }
+    ).maxTimeMS(5000);
+
     console.log(`PUT /api/posts/${id} - Post updated successfully`);
-    const response = NextResponse.json(post);
+    const response = NextResponse.json(updatedPost);
     return addCorsHeaders(response);
   } catch (error) {
     console.error('Error updating post:', error);
@@ -141,12 +154,12 @@ export async function PUT(
     );
     return addCorsHeaders(response);
   }
-}
+});
 
-export async function DELETE(
-  request: NextRequest,
+export const DELETE = requireAuth(async (
+  request: AuthenticatedRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   try {
     const { id } = await params;
     console.log(`DELETE /api/posts/${id} - Starting request`);
@@ -168,8 +181,8 @@ export async function DELETE(
       return addCorsHeaders(response);
     }
 
-    const post = await Post.findByIdAndDelete(id).maxTimeMS(5000);
-
+    // 投稿を取得して権限をチェック
+    const post = await Post.findById(id).maxTimeMS(5000);
     if (!post) {
       const response = NextResponse.json(
         { error: '投稿が見つかりません' },
@@ -177,6 +190,18 @@ export async function DELETE(
       );
       return addCorsHeaders(response);
     }
+
+    const user = request.user;
+    // 管理者または投稿者本人のみ削除可能
+    if (user.role !== 'admin' && post.author.userId.toString() !== user.userId) {
+      const response = NextResponse.json(
+        { error: 'この投稿を削除する権限がありません' },
+        { status: 403 }
+      );
+      return addCorsHeaders(response);
+    }
+
+    await Post.findByIdAndDelete(id).maxTimeMS(5000);
 
     console.log(`DELETE /api/posts/${id} - Post deleted successfully`);
     const response = NextResponse.json({ message: '投稿を削除しました' });
@@ -189,4 +214,4 @@ export async function DELETE(
     );
     return addCorsHeaders(response);
   }
-}
+});

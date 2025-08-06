@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { generateToken } from '@/lib/jwt';
+import { mockDB, comparePassword } from '@/lib/mock-db';
 
 // CORS headers function
 function addCorsHeaders(response: NextResponse) {
@@ -19,8 +20,67 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    await connectDB();
     const { email, password } = await request.json();
+    
+    // モックモードの確認
+    const useMockDB = process.env.USE_MOCK_DB === 'true';
+    
+    if (useMockDB) {
+      // モックデータベースを使用
+
+      // バリデーション
+      if (!email || !password) {
+        const response = NextResponse.json(
+          { error: 'メールアドレスとパスワードは必須です' },
+          { status: 400 }
+        );
+        return addCorsHeaders(response);
+      }
+
+      // ユーザーを検索
+      const user = await mockDB.findUserByEmail(email);
+      console.log('Mock login attempt:', { email, userFound: !!user });
+
+      if (!user) {
+        const response = NextResponse.json(
+          { error: 'メールアドレスまたはパスワードが正しくありません' },
+          { status: 401 }
+        );
+        return addCorsHeaders(response);
+      }
+
+      // パスワードを確認
+      const isPasswordValid = await comparePassword(user.password, password);
+
+      if (!isPasswordValid) {
+        const response = NextResponse.json(
+          { error: 'メールアドレスまたはパスワードが正しくありません' },
+          { status: 401 }
+        );
+        return addCorsHeaders(response);
+      }
+
+      // モックモードではダミートークンを使用
+      const token = 'mock-token-' + Date.now();
+
+      const response = NextResponse.json({
+        message: 'ログインに成功しました',
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
+        },
+        token
+      });
+
+      return addCorsHeaders(response);
+    } else {
+      // 実際のデータベースを使用
+      await connectDB();
 
     // バリデーション
     if (!email || !password) {
@@ -53,6 +113,15 @@ export async function POST(request: NextRequest) {
       return addCorsHeaders(response);
     }
 
+    // メール認証の確認
+    if (!user.isEmailVerified) {
+      const response = NextResponse.json(
+        { error: 'メールアドレスの確認が完了していません。メールを確認して認証を完了してください。' },
+        { status: 401 }
+      );
+      return addCorsHeaders(response);
+    }
+
     // JWTトークンを生成
     const token = generateToken({
       userId: user._id.toString(),
@@ -68,6 +137,7 @@ export async function POST(request: NextRequest) {
     });
 
     return addCorsHeaders(response);
+    }
   } catch (error) {
     console.error('Error logging in:', error);
     const response = NextResponse.json(

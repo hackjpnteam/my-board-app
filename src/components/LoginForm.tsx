@@ -68,8 +68,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            sx={{ mb: 3 }}
+            sx={{ mb: 1 }}
           />
+          
+          <Box sx={{ textAlign: 'right', mb: 2 }}>
+            <Link
+              href="/auth/forgot-password"
+              variant="body2"
+              sx={{ textDecoration: 'none' }}
+            >
+              パスワードを忘れた場合
+            </Link>
+          </Box>
           
           <Button
             type="submit"

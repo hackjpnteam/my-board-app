@@ -1,54 +1,37 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography } from '@mui/material';
+import { Container, Box } from '@mui/material';
 import LoginForm from '@/components/LoginForm';
 import RegisterForm from '@/components/RegisterForm';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
-  // ログイン済みの場合は掲示板ページにリダイレクト
   useEffect(() => {
-    if (!isLoading && user) {
-      router.push('/');
-    }
-  }, [user, isLoading, router]);
+    setMounted(true);
+  }, []);
 
-  if (isLoading) {
+  if (!mounted) {
     return (
-      <Container maxWidth="sm">
-        <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography>読み込み中...</Typography>
+      <Container maxWidth="sm" sx={{ py: 8 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <div>読み込み中...</div>
         </Box>
       </Container>
     );
   }
 
-  if (user) {
-    return null; // リダイレクト中
-  }
-
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ textAlign: 'center', mt: 4 }}>
-        <Typography variant="h3" component="h1" sx={{ mb: 2 }}>
-          掲示板アプリ
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          会員制掲示板にようこそ
-        </Typography>
+    <Container maxWidth="sm" sx={{ py: 8 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        {isLogin ? (
+          <LoginForm onSwitchToRegister={() => setIsLogin(false)} />
+        ) : (
+          <RegisterForm onSwitchToLogin={() => setIsLogin(true)} />
+        )}
       </Box>
-
-      {isLogin ? (
-        <LoginForm onSwitchToRegister={() => setIsLogin(false)} />
-      ) : (
-        <RegisterForm onSwitchToLogin={() => setIsLogin(true)} />
-      )}
     </Container>
   );
 } 

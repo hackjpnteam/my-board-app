@@ -41,29 +41,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // 初期化時にローカルストレージからトークンを復元
   useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    if (savedToken) {
-      setToken(savedToken);
-      // トークンからユーザー情報を復元（簡易版）
-      try {
-        const payload = JSON.parse(atob(savedToken.split('.')[1]));
-        setUser({
-          _id: payload.userId,
-          username: payload.username,
-          email: payload.email,
-          role: payload.role,
-          isEmailVerified: false, // 簡易版のため
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      } catch (error) {
-        console.error('Invalid token:', error);
-        localStorage.removeItem('token');
+    // クライアントサイドでのみ実行
+    if (typeof window !== 'undefined') {
+      const savedToken = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
+      
+      if (savedToken && savedUser) {
+        setToken(savedToken);
+        try {
+          // モックモードでは直接ユーザー情報を保存している
+          const user = JSON.parse(savedUser);
+          setUser(user);
+        } catch (error) {
+          console.error('Invalid user data:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
       }
     }
+    setIsInitialized(true);
     setIsLoading(false);
   }, []);
 
@@ -89,8 +89,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'ログインに失敗しました');
+      const errorMessage = error instanceof Error ? error.message : 'ログインに失敗しました';
+      setError(errorMessage);
+      console.error('Login error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -119,8 +122,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'ユーザー登録に失敗しました');
+      const errorMessage = error instanceof Error ? error.message : 'ユーザー登録に失敗しました';
+      setError(errorMessage);
+      console.error('Register error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -131,6 +137,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   const value: AuthContextType = {
@@ -142,6 +149,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     error,
   };
+
+  // 初期化が完了するまでローディング状態を表示
+  if (!isInitialized) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <AuthContext.Provider value={value}>
